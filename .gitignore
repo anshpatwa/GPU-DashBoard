@@ -1,0 +1,10 @@
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# Runtime / local state (not part of the app)
+servers.txt
+*.log
+.env

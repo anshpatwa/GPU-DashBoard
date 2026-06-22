@@ -1,0 +1,18 @@
+# Render Blueprint — deploys the GPU dashboard as a free web service.
+# This machine has NO GPU, so it runs as an aggregator: set GPU_REMOTES to the
+# URL(s) of the real GPU server(s) (e.g. the L40S tunnel link) and it displays
+# them. Render then gives you a free, permanent https://<name>.onrender.com URL.
+services:
+  - type: web
+    name: gpu-dashboard
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      # Comma-separated URLs of the GPU servers to display (set in Render UI).
+      - key: GPU_REMOTES
+        sync: false
+      # Secret that unlocks the Add/Remove-server buttons (set in Render UI).
+      - key: ADMIN_TOKEN
+        sync: false
