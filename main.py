@@ -337,6 +337,7 @@ HTML_PAGE = """
 <style>
   :root { --text:#eef2f9; --muted:#9aa4b2; --line:rgba(255,255,255,0.10); }
   * { box-sizing: border-box; }
+  html, body { overflow-x:hidden; }
   body {
     margin:0; min-height:100vh; color:var(--text);
     font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
@@ -361,18 +362,59 @@ HTML_PAGE = """
   @keyframes drift1 { from{transform:translate(0,0) scale(1)} to{transform:translate(130px,90px) scale(1.15)} }
   @keyframes drift2 { from{transform:translate(0,0) scale(1)} to{transform:translate(-110px,-70px) scale(1.12)} }
 
+  /* left sidebar — vertical brand, scaffold for future nav */
+  .sidebar {
+    position:fixed; top:0; left:0; bottom:0; width:86px; z-index:20;
+    display:flex; flex-direction:column; align-items:center; gap:20px; padding:24px 0;
+    background:rgba(255,255,255,0.045);
+    backdrop-filter:blur(24px) saturate(160%); -webkit-backdrop-filter:blur(24px) saturate(160%);
+    border-right:1px solid var(--line);
+    box-shadow:8px 0 30px rgba(0,0,0,.35);
+    transition:transform .32s cubic-bezier(.4,0,.2,1);
+  }
+  .logo { width:44px; height:44px; border-radius:13px; display:grid; place-items:center;
+    background:linear-gradient(145deg, rgba(99,102,241,.65), rgba(168,85,247,.55));
+    box-shadow:0 8px 20px rgba(99,102,241,.45), inset 0 1px 0 rgba(255,255,255,.45); }
+  .vtitle { writing-mode:vertical-rl; text-orientation:mixed; flex:1; white-space:nowrap;
+    display:flex; align-items:center; justify-content:center;
+    font-size:15px; font-weight:700; letter-spacing:5px; text-transform:uppercase;
+    background:linear-gradient(180deg,#ffffff 0%,#8b93ff 55%,#a855f7 100%);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    filter:drop-shadow(0 2px 10px rgba(129,140,248,.35)); }
+  .sidefoot { writing-mode:vertical-rl; font-size:11px; letter-spacing:3px; text-transform:uppercase;
+    color:var(--muted); display:flex; align-items:center; gap:9px; }
+  .sidefoot .dot { width:7px; height:7px; border-radius:50%; background:#3fb950;
+    box-shadow:0 0 9px #3fb950; animation:pulse 2s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+  .main { margin-left:86px; min-height:100vh; transition:margin .32s; }
+  .overlay { display:none; }
+
   header {
-    position:sticky; top:0; z-index:5; display:flex; align-items:center; gap:14px;
-    padding:20px 30px; border-bottom:1px solid var(--line);
+    position:sticky; top:0; z-index:10; display:flex; align-items:center; gap:14px;
+    padding:18px 28px; border-bottom:1px solid var(--line);
     background:rgba(255,255,255,0.03);
     backdrop-filter:blur(20px) saturate(150%); -webkit-backdrop-filter:blur(20px) saturate(150%);
   }
-  header h1 { margin:0; font-size:19px; font-weight:650; letter-spacing:.2px;
-    background:linear-gradient(90deg,#ffffff,#9aa4b2); -webkit-background-clip:text; background-clip:text; color:transparent; }
   header #status { color:var(--muted); font-size:13px; }
   header .spacer { flex:1; }
+  .iconbtn { display:none; font-size:18px; line-height:1; color:var(--text); cursor:pointer;
+    width:38px; height:38px; align-items:center; justify-content:center; border-radius:10px;
+    background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.16); backdrop-filter:blur(10px); }
 
-  .grid { padding:26px 30px; max-width:1500px; margin:0 auto; }
+  .grid { padding:24px 28px; }
+
+  /* mobile: hide sidebar off-canvas, reveal with the ☰ button */
+  @media (max-width:820px) {
+    .sidebar { transform:translateX(-100%); width:220px; align-items:flex-start; padding:24px 22px; }
+    .vtitle { writing-mode:horizontal-tb; flex:0; letter-spacing:3px; font-size:19px; justify-content:flex-start; }
+    .sidefoot { writing-mode:horizontal-tb; }
+    body.nav-open .sidebar { transform:translateX(0); }
+    .main { margin-left:0; }
+    .iconbtn { display:inline-flex; }
+    body.nav-open .overlay { display:block; position:fixed; inset:0; z-index:15;
+      background:rgba(0,0,0,.55); backdrop-filter:blur(2px); }
+  }
 
   /* super-card: a faint glass frame around a server's GPUs */
   .server {
@@ -441,25 +483,44 @@ HTML_PAGE = """
 </style>
 </head>
 <body>
-  <header>
-    <h1>GPU Utilization Dashboard</h1>
-    <span id="status">connecting…</span>
-    <span class="spacer"></span>
-    <button class="btn" id="addBtn">＋ Add server</button>
-  </header>
-  <div id="addPanel">
-    <input id="srvUrl" placeholder="Server URL  e.g.  https://server-b.trycloudflare.com  or  http://10.0.0.42:8800">
-    <input id="srvToken" type="password" placeholder="admin token">
-    <button class="btn" id="srvAdd">Add</button>
-    <span id="addMsg"></span>
-  </div>
-  <div id="error"></div>
-  <div class="grid" id="grid"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="logo">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round">
+        <rect x="6" y="6" width="12" height="12" rx="2"/>
+        <path d="M9 1.5v3M15 1.5v3M9 19.5v3M15 19.5v3M1.5 9h3M1.5 15h3M19.5 9h3M19.5 15h3"/>
+      </svg>
+    </div>
+    <div class="vtitle">GPU&nbsp;Utilization&nbsp;Dashboard</div>
+    <div class="sidefoot"><span class="dot"></span>live</div>
+  </aside>
+  <div class="overlay" id="overlay"></div>
+  <main class="main">
+    <header>
+      <button class="iconbtn" id="navToggle" aria-label="Toggle sidebar">☰</button>
+      <span id="status">connecting…</span>
+      <span class="spacer"></span>
+      <button class="btn" id="addBtn">＋ Add server</button>
+    </header>
+    <div id="addPanel">
+      <input id="srvUrl" placeholder="Server URL  e.g.  https://server-b.trycloudflare.com  or  http://10.0.0.42:8800">
+      <input id="srvToken" type="password" placeholder="admin token">
+      <button class="btn" id="srvAdd">Add</button>
+      <span id="addMsg"></span>
+    </div>
+    <div id="error"></div>
+    <div class="grid" id="grid"></div>
+  </main>
 
 <script>
 const grid = document.getElementById('grid');
 const statusEl = document.getElementById('status');
 const errorEl = document.getElementById('error');
+
+// mobile sidebar toggle — keeps the sidebar out of the way on small screens
+const navToggle = document.getElementById('navToggle');
+const overlay = document.getElementById('overlay');
+navToggle.onclick = () => document.body.classList.toggle('nav-open');
+overlay.onclick = () => document.body.classList.remove('nav-open');
 
 // colour by how busy something is
 function colour(p) {
