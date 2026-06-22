@@ -418,6 +418,16 @@ HTML_PAGE = """
     body.nav-open .sidebar .sidefoot { display:flex; writing-mode:horizontal-tb; }
     body.nav-open .overlay { display:block; position:fixed; inset:0; z-index:20;
       background:rgba(0,0,0,.55); backdrop-filter:blur(2px); }
+
+    /* make the content fit narrow screens — one card per row, tighter spacing */
+    header { padding:14px 16px; gap:10px; }
+    header #status { font-size:12px; }
+    .grid { padding:16px 14px; }
+    .server-head { padding:14px 16px; }
+    .server-gpus { grid-template-columns:minmax(0,1fr); gap:14px; padding:16px; }
+    .card { padding:18px; }
+    #addPanel { padding:14px 16px; }
+    #addPanel #srvUrl { min-width:0; }
   }
 
   /* super-card: a faint glass frame around a server's GPUs */
