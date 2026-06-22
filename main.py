@@ -404,6 +404,14 @@ HTML_PAGE = """
 
   .grid { padding:24px 28px; }
 
+  /* desktop only: lay server cards side by side so they use the width
+     instead of stacking full-width with empty space on the right */
+  @media (min-width:821px) {
+    .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(430px, 1fr));
+            gap:22px; align-items:start; }
+    .server { margin:0; }
+  }
+
   /* mobile: sidebar collapses to just the icon square; ☰ expands it */
   @media (max-width:820px) {
     .sidebar { width:62px; align-items:center; padding:18px 0; z-index:30; }
