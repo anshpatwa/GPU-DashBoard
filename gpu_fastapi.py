@@ -1,16 +1,16 @@
 """
-Minimal GPU agent (FastAPI) for the GPU Dashboard.
+Minimal GPU FastAPI service for the GPU Dashboard.
 
 Runs on a GPU server and exposes ONLY the data the dashboard needs:
     GET /api/gpus  ->  {"ok": true, "servers": [{"name", "gpus": [...]}]}
 
-It's the GPU-reading half of main.py with none of the dashboard UI, so the file
+It's the GPU-reading half of website_gpu_main.py with none of the dashboard UI, so the file
 stays small. The full dashboard (HTML + multi-server aggregation) lives on the
 aggregator (Render); a GPU server only needs to serve its own numbers.
 
 Run:
     pip install fastapi uvicorn nvidia-ml-py
-    uvicorn agent:app --host 127.0.0.1 --port 8900
+    uvicorn gpu_fastapi:app --host 127.0.0.1 --port 8900
 """
 from __future__ import annotations
 
@@ -22,11 +22,11 @@ from typing import Optional
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
-app = FastAPI(title="GPU Agent")
+app = FastAPI(title="GPU FastAPI")
 
 
 # Try NVML first (fast, clean); fall back to parsing nvidia-smi. Same approach as
-# main.py, so the agent reports identical numbers.
+# website_gpu_main.py, so this service reports identical numbers.
 try:
     import pynvml
 
@@ -128,3 +128,8 @@ def api_gpus():
         }
     except Exception as exc:
         return JSONResponse({"ok": False, "error": str(exc)}, status_code=500)
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("gpu_fastapi:app", host="0.0.0.0", port=8900, reload=True)

@@ -11,12 +11,12 @@ Serves two things from one app:
 
 Run locally:
     pip install -r requirements.txt
-    uvicorn main:app --reload
-    # open http://127.0.0.1:8000
+    uvicorn website_gpu_main:app --reload --port 8900
+    # open http://127.0.0.1:8900
 
 Run on the H100/H200 server (reachable from your machine):
-    uvicorn main:app --host 0.0.0.0 --port 8000
-    # open http://<server-ip>:8000   (keep it behind a VPN/firewall)
+    uvicorn website_gpu_main:app --host 0.0.0.0 --port 8900
+    # open http://<server-ip>:8900   (keep it behind a VPN/firewall)
 """
 
 from __future__ import annotations
@@ -163,7 +163,7 @@ _SERVERS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "server
 
 # Token that protects the add/remove actions. Viewing is always public; only
 # changing the server list needs this. Set it when you launch the app:
-#     ADMIN_TOKEN="some-secret" python -m uvicorn main:app ...
+#     ADMIN_TOKEN="some-secret" python -m uvicorn website_gpu_main:app ...
 _ADMIN_TOKEN = os.environ.get("ADMIN_TOKEN", "")
 
 
@@ -681,3 +681,8 @@ setInterval(tick, 1000);   // refresh once per second
 </body>
 </html>
 """
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("website_gpu_main:app", host="0.0.0.0", port=8900, reload=True)
